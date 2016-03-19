@@ -55,4 +55,65 @@ $_LANG['cfg_name']['site_url'] = "网店图片资源地址";
 ```
 重新打开后台系统设置页面，即可看到刚刚设置的这个site_url了。
 
-6. 网店最主要的是产品图片资源较多，
+6. 【后台修改】网店最主要的是产品图片资源较多，此处就以后台添加产品为例说明。编辑后台目录（默认admin）下的goods.php 文件，1211行左右[/* 处理相册图片 */] 之后添加代码：
+
+```php
+if($GLOBALS['_CFG']['site_url']!="" && $GLOBALS['_CFG']['site_url']!='http://'.$_SERVER['HTTP_HOST'].'/'){
+    //上传图片到远程服务器
+    include_once dirname(__FILE__) . '/../includes/remoteFileUp.php';
+    $CusRemoteFile = new CustomRemoteFile();
+    if($goods_img){
+        $CusRemoteFile->cus_remote_gallery_file('../'.$goods_img);  //上传商品图
+    }
+    if($original_img){
+        $CusRemoteFile->cus_remote_gallery_file('../'.$original_img); //上传商品原图
+    }
+    if($goods_thumb){
+        $CusRemoteFile->cus_remote_gallery_file('../'.$goods_thumb);  //上传商品缩略图
+    }
+    if($img){
+        $CusRemoteFile->cus_remote_gallery_file('../'.$img);          //上传商品相册图
+    }
+    if($gallery_img){
+        $CusRemoteFile->cus_remote_gallery_file('../'.$gallery_img);  //上传商品相册图
+    }
+    if($gallery_thumb){
+        $CusRemoteFile->cus_remote_gallery_file('../'.$gallery_thumb); //上传商品相册缩略图
+    }
+}
+```
+7.【前台模板修改】首先在includes/lib_main.php 文件中找到function assign_template（第1701行左右）添加一行代码，目的是赋值给smarty一个公共的变量：
+```php
+ $smarty->assign('site_url',      $GLOBALS['_CFG']['site_url']);
+```
+8. 【前台模板修改】在themes目录下修改首页、列表页、详情页等需要修改的模板，在img的src之前加上{$site_url}即可
+
+9. 【前台模板修改】固定的图片资源在模板里相应变量前加$site_url就可以了，接下来要将产品详情等在后台编辑器中编辑的图片也改过来。
+在includes/lib_base.php文件末尾加一个公共函数，用来替换编辑器编辑的内容中的图片路径：
+```php
+/**
+ * 替换图片地址为图片服务器地址，如有需要，可以自行添加
+ * @param string $site_url 图片服务器地址
+ * @param string $content 原字符串
+ * @return string
+ */
+function replace_remote_image_url($site_url='', $content=''){
+    if($site_url == '' || $content == ''){
+        return '';
+    }
+    //原ueditor编辑器上传的图片带有当前站点网址，如果是新站，第一行可忽略
+    $content = str_replace("http://".$_SERVER['HTTP_HOST']."/includes/ueditor/php/../../../", '/', $content);
+    $content = str_replace('src="/bdimages/', 'src="'.$site_url.'bdimages/', $content);
+    $content = str_replace('src="/images/', 'src="'.$site_url.'images/', $content);
+    return $content;
+}
+```
+10. 【前台模板修改】编辑goods.php 文件，找到：
+`$smarty->assign('goods',              $goods);`
+在它之前添加一行代码：
+```php
+ $goods['goods_desc'] = replace_remote_image_url($GLOBALS['_CFG']['site_url'], $goods['goods_desc']);
+``
+
+完成
+=====
