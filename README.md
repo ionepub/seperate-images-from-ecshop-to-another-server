@@ -22,7 +22,7 @@
 
 1. 添加 uploadFile.php 文件到图片服务器根目录，并在根目录下创建 logs 文件夹，作为日志目录
 2. 编辑 uploadFile.php 文件，设置第7行的 `access_key` ，用来进行简单的验证
-2. 分别复制 bdimages(ueditor文件上传目录)、data、images、themes（主题目录，可不传）目录到图片服务器根目录下
+3. 分别复制 bdimages(ueditor文件上传目录)、data、images、themes（主题目录，可不传）目录到图片服务器根目录下
  
 ### 主服务器修改
 
